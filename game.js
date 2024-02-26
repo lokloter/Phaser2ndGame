@@ -19,33 +19,33 @@ var config = {
 var game = new Phaser.Game(config);
 
 var player;
+var platform;
 var cursors;
-var platforms;
 var obstacles;
+var scrollSpeed = 100; // Швидкість прокрутки перешкод
+var jumpSpeed = -330; // Швидкість стрибка
+var maxObstacles = 3; // Максимальна кількість перешкод одночасно
 
 function preload() {
-  this.load.image("ground", "assets/platform.png");
-  this.load.image("obstacle", "assets/bomb.png");
+  this.load.image("phon", "assets/phon.jpg");
+  this.load.image("platform", "assets/platform.png");
   this.load.spritesheet("dude", "assets/dude.png", {
     frameWidth: 32,
     frameHeight: 48,
   });
+  this.load.image("obstacle", "assets/obstacle.png");
 }
 
 function create() {
-  platforms = this.physics.add.staticGroup();
-  platforms.create(400, 568, "ground").setScale(2).refreshBody();
-  platforms.create(600, 400, "ground");
-  platforms.create(50, 250, "ground");
-  platforms.create(750, 220, "ground");
+  // Додайте фон
+  this.add.image(400, 300, "phon");
 
+  // Створення гравця
   player = this.physics.add.sprite(100, 450, "dude");
   player.setBounce(0.2);
   player.setCollideWorldBounds(true);
-  this.physics.add.collider(player, platforms);
 
-  cursors = this.input.keyboard.createCursorKeys();
-
+  // Анімація руху гравця
   this.anims.create({
     key: "left",
     frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
@@ -66,39 +66,65 @@ function create() {
     repeat: -1,
   });
 
-  obstacles = this.physics.add.group();
-  this.physics.add.collider(obstacles, platforms);
+  // Створення платформи
+  platform = this.physics.add.staticGroup();
+  platform.create(400, 568, "platform").setScale(2).refreshBody();
 
-  // Spawn obstacles
-  this.time.addEvent({
-    delay: 2000,
-    callback: spawnObstacle,
-    callbackScope: this,
-    loop: true,
-  });
+  // Створення курсорів клавіатури
+  cursors = this.input.keyboard.createCursorKeys();
+
+  // Створення групи для перешкод
+  obstacles = this.physics.add.group();
+
+  // Створення першої перешкоди
+  createObstacle();
+
+  this.physics.add.collider(player, platform);
+  this.physics.add.collider(player, obstacles, stopObstacle, null, this);
 }
 
 function update() {
+  // Рух гравця
   if (cursors.left.isDown) {
-    player.setVelocityX(-160);
+    player.setVelocityX(0);
     player.anims.play("left", true);
+    // Рух перешкод вправо
+    obstacles.setVelocityX(scrollSpeed);
   } else if (cursors.right.isDown) {
-    player.setVelocityX(160);
+    player.setVelocityX(0);
     player.anims.play("right", true);
+    // Рух перешкод вліво
+    obstacles.setVelocityX(-scrollSpeed);
   } else {
     player.setVelocityX(0);
     player.anims.play("turn");
+    obstacles.setVelocityX(0);
   }
 
+  // Перевірка клавіші простору для стрибка
   if (cursors.up.isDown && player.body.touching.down) {
-    player.setVelocityY(-330);
+    player.setVelocityY(jumpSpeed);
+  }
+
+  // Видалення перешкод, які вийшли за межі екрану
+  obstacles.children.iterate(function (child) {
+    if (child.x < -100) {
+      child.destroy();
+    }
+  });
+
+  // Створення нової перешкоди, якщо кількість перешкод менше максимальної кількості
+  if (obstacles.countActive(true) < maxObstacles) {
+    createObstacle();
   }
 }
 
-function spawnObstacle() {
-  var x = Phaser.Math.Between(50, 750);
-  var obstacle = obstacles.create(x, 16, "obstacle");
-  obstacle.setBounce(1);
-  obstacle.setCollideWorldBounds(true);
-  obstacle.setVelocity(Phaser.Math.Between(-200, 200), 20);
+function stopObstacle(player, obstacle) {
+  obstacle.body.moves = false;
+}
+
+function createObstacle() {
+  var obstacle = obstacles.create(800, 500, "obstacle");
+  obstacle.setImmovable(true);
+  obstacle.body.allowGravity = false;
 }
