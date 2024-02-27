@@ -24,15 +24,13 @@ var cursors;
 var obstacles;
 var scrollSpeed = 100; // Швидкість прокрутки перешкод
 var jumpSpeed = -330; // Швидкість стрибка
-var maxObstacles = 3; // Максимальна кількість перешкод одночасно
+var obstacleTimer;
+var isGameOver = false;
 
 function preload() {
   this.load.image("phon", "assets/phon.jpg");
   this.load.image("platform", "assets/platform.png");
-  this.load.spritesheet("dude", "assets/dude.png", {
-    frameWidth: 32,
-    frameHeight: 48,
-  });
+  this.load.spritesheet("dude", "assets/dude.png", { frameWidth: 32, frameHeight: 48 });
   this.load.image("obstacle", "assets/obstacle.png");
 }
 
@@ -76,55 +74,63 @@ function create() {
   // Створення групи для перешкод
   obstacles = this.physics.add.group();
 
-  // Створення першої перешкоди
-  createObstacle();
+  // Запуск таймера для створення перешкод кожні 2 секунди
+  obstacleTimer = this.time.addEvent({
+    delay: 2000,
+    loop: true,
+    callback: createObstacle,
+    callbackScope: this,
+  });
 
   this.physics.add.collider(player, platform);
   this.physics.add.collider(player, obstacles, stopObstacle, null, this);
 }
 
 function update() {
-  // Рух гравця
-  if (cursors.left.isDown) {
-    player.setVelocityX(0);
-    player.anims.play("left", true);
-    // Рух перешкод вправо
-    obstacles.setVelocityX(scrollSpeed);
-  } else if (cursors.right.isDown) {
-    player.setVelocityX(0);
-    player.anims.play("right", true);
-    // Рух перешкод вліво
-    obstacles.setVelocityX(-scrollSpeed);
-  } else {
-    player.setVelocityX(0);
-    player.anims.play("turn");
-    obstacles.setVelocityX(0);
-  }
-
-  // Перевірка клавіші простору для стрибка
-  if (cursors.up.isDown && player.body.touching.down) {
-    player.setVelocityY(jumpSpeed);
-  }
-
-  // Видалення перешкод, які вийшли за межі екрану
-  obstacles.children.iterate(function (child) {
-    if (child.x < -100) {
-      child.destroy();
+  if (!isGameOver) {
+    // Рух гравця
+    if (cursors.left.isDown) {
+      player.setVelocityX(0);
+      player.anims.play("left", true);
+      // Рух перешкод вправо
+      obstacles.setVelocityX(scrollSpeed);
+    } else if (cursors.right.isDown) {
+      player.setVelocityX(0);
+      player.anims.play("right", true);
+      // Рух перешкод вліво
+      obstacles.setVelocityX(-scrollSpeed);
+    } else {
+      player.setVelocityX(0);
+      player.anims.play("turn");
+      obstacles.setVelocityX(0);
     }
-  });
 
-  // Створення нової перешкоди, якщо кількість перешкод менше максимальної кількості
-  if (obstacles.countActive(true) < maxObstacles) {
-    createObstacle();
+    // Перевірка клавіші простору для стрибка
+    if (cursors.up.isDown && player.body.touching.down) {
+      player.setVelocityY(jumpSpeed);
+    }
+
+    // Зберігання координат Y перешкод
+    obstacles.children.iterate(function (child) {
+      child.y = 500;
+    });
+  }
+}
+
+function createObstacle() {
+  if (!isGameOver) {
+    var obstacle = obstacles.create(900, 500, "obstacle");
+    obstacle.setImmovable(true);
+    obstacle.body.allowGravity = false; // Зупиняємо падіння перешкод
   }
 }
 
 function stopObstacle(player, obstacle) {
   obstacle.body.moves = false;
+  isGameOver = true;
+  gameOver();
 }
 
-function createObstacle() {
-  var obstacle = obstacles.create(800, 500, "obstacle");
-  obstacle.setImmovable(true);
-  obstacle.body.allowGravity = false;
+function gameOver() {
+  console.log("Game Over");
 }
