@@ -22,12 +22,13 @@ var player;
 var platform;
 var cursors;
 var obstacles;
-var scrollSpeed = 100; // Швидкість прокрутки перешкод
-var jumpSpeed = -330; // Швидкість стрибка
-var maxObstacles = 3; // Максимальна кількість перешкод одночасно
+var scrollSpeed = 100;
+var jumpSpeed = -330;
+var maxObstacles = 3;
+var worldWidth = 10000;
 
 function preload() {
-  this.load.image("phon", "assets/phon.jpg");
+  this.load.image("fon2", "assets/fon2.jpg");
   this.load.image("platform", "assets/platform.png");
   this.load.spritesheet("dude", "assets/dude.png", {
     frameWidth: 32,
@@ -37,15 +38,13 @@ function preload() {
 }
 
 function create() {
-  // Додайте фон
-  this.add.image(400, 300, "phon");
+  // this.add.image(400, 300, "phon");
+  this.add.tileSprite(0, 0, worldWidth, 1080, "fon2").setOrigin(0, 0);
 
-  // Створення гравця
   player = this.physics.add.sprite(100, 450, "dude");
   player.setBounce(0.2);
   player.setCollideWorldBounds(true);
 
-  // Анімація руху гравця
   this.anims.create({
     key: "left",
     frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
@@ -66,17 +65,13 @@ function create() {
     repeat: -1,
   });
 
-  // Створення платформи
   platform = this.physics.add.staticGroup();
   platform.create(400, 568, "platform").setScale(2).refreshBody();
 
-  // Створення курсорів клавіатури
   cursors = this.input.keyboard.createCursorKeys();
 
-  // Створення групи для перешкод
   obstacles = this.physics.add.group();
 
-  // Створення першої перешкоди
   createObstacle();
 
   this.physics.add.collider(player, platform);
@@ -84,16 +79,13 @@ function create() {
 }
 
 function update() {
-  // Рух гравця
   if (cursors.left.isDown) {
     player.setVelocityX(0);
     player.anims.play("left", true);
-    // Рух перешкод вправо
     obstacles.setVelocityX(scrollSpeed);
   } else if (cursors.right.isDown) {
     player.setVelocityX(0);
     player.anims.play("right", true);
-    // Рух перешкод вліво
     obstacles.setVelocityX(-scrollSpeed);
   } else {
     player.setVelocityX(0);
@@ -101,19 +93,15 @@ function update() {
     obstacles.setVelocityX(0);
   }
 
-  // Перевірка клавіші простору для стрибка
   if (cursors.up.isDown && player.body.touching.down) {
     player.setVelocityY(jumpSpeed);
   }
 
-  // Видалення перешкод, які вийшли за межі екрану
   obstacles.children.iterate(function (child) {
     if (child.x < -100) {
       child.destroy();
     }
   });
-
-  // Створення нової перешкоди, якщо кількість перешкод менше максимальної кількості
   if (obstacles.countActive(true) < maxObstacles) {
     createObstacle();
   }
