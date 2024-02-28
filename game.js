@@ -1,7 +1,7 @@
 var config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 1920,
+  height: 1080,
   physics: {
     default: "arcade",
     arcade: {
@@ -38,13 +38,17 @@ function preload() {
 }
 
 function create() {
-  // this.add.image(400, 300, "phon");
   this.add.tileSprite(0, 0, worldWidth, 1080, "fon2").setOrigin(0, 0);
 
-  player = this.physics.add.sprite(100, 450, "dude");
+  player = this.physics.add.sprite(100, 900, "dude");
   player.setBounce(0.2);
   player.setCollideWorldBounds(true);
 
+  this.cameras.main.setBounds(0, 0, worldWidth, window.innerHeight);
+  this.physics.world.setBounds(0, 0, worldWidth, window.innerHeight);
+
+  this.cameras.main.startFollow(player);
+  
   this.anims.create({
     key: "left",
     frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
@@ -66,13 +70,15 @@ function create() {
   });
 
   platform = this.physics.add.staticGroup();
-  platform.create(400, 568, "platform").setScale(2).refreshBody();
+  for (var x = 0; x < worldWidth; x = x + 450) {
+    console.log(x);
+    platform.create(x, 1000, "platform").setOrigin(0, 0).refreshBody();
+  }
 
   cursors = this.input.keyboard.createCursorKeys();
 
   obstacles = this.physics.add.group();
-
-  createObstacle();
+  //createObstacle();
 
   this.physics.add.collider(player, platform);
   this.physics.add.collider(player, obstacles, stopObstacle, null, this);
@@ -103,16 +109,16 @@ function update() {
     }
   });
   if (obstacles.countActive(true) < maxObstacles) {
-    createObstacle();
+    //createObstacle();
   }
 }
 
 function stopObstacle(player, obstacle) {
   obstacle.body.moves = false;
+  isGameOver = true;
+  gameOver();
 }
 
-function createObstacle() {
-  var obstacle = obstacles.create(800, 500, "obstacle");
-  obstacle.setImmovable(true);
-  obstacle.body.allowGravity = false;
+function gameOver() {
+  console.log("Game Over");
 }
