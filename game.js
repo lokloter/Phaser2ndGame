@@ -6,7 +6,7 @@ var config = {
     default: "arcade",
     arcade: {
       gravity: { y: 400 },
-      debug: true,
+      debug: false,
     },
   },
   scene: {
@@ -22,7 +22,7 @@ var player;
 var platform;
 var cursors;
 var obstacles;
-var scrollSpeed = 150;
+var scrollSpeed = 500;
 var jumpSpeed = -330;
 var maxObstacles = 3;
 var worldWidth = 9600;
@@ -41,11 +41,12 @@ function preload() {
 }
 
 function create() {
+
   //для фону
-  this.add.tileSprite(0, 0, worldWidth, 1080, "fon2").setOrigin(0, 0);
+  this.add.tileSprite(0, 0, worldWidth, 1080, "fon2").setOrigin(0, 0).setDepth(0);
 
   //гравець
-  player = this.physics.add.sprite(100, 900, "dude");
+  player = this.physics.add.sprite(100, 900, "dude").setDepth(4);
   player.setBounce(0.2);
   player.setCollideWorldBounds(true);
 
@@ -80,22 +81,28 @@ function create() {
   platform = this.physics.add.staticGroup();
   for (var x = 0; x < worldWidth; x = x + 100) {
     console.log(x);
-    platform.create(x, 1000, "platform").setOrigin(0, 0).refreshBody();
+    platform.create(x, 1090-93, "platform").setOrigin(0, 0).refreshBody();
   }
 
   //stones
   for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(500, 1000)) {
     console.log(x);
-    stone = this.physics.add.sprite(x, 1000, "Bush").setOrigin(0, 1);
+    stone = this.physics.add.sprite(x, 1000, "Bush").setOrigin(0, 1).setDepth(Phaser.Math.Between(1,5)).setScale(Phaser.Math.FloatBetween(0.5,1.5));
     this.physics.add.collider(stone, platform);
     //create(x, 1000, "Bush");
   }
 
   for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(1000, 2000)) {
     console.log(x);
-    stone = this.physics.add.sprite(x, 1000, "Tree").setOrigin(0, 1);
+    stone = this.physics.add.sprite(x, 1000, "Tree").setOrigin(0, 1).setDepth(Phaser.Math.Between(1,5)).setScale(Phaser.Math.FloatBetween(1,1.5));
     this.physics.add.collider(stone, platform);
     //create(x, 1000, "Bush");
+  }
+
+  for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(900, 1400)) {
+    console.log(x);
+    stone = this.physics.add.sprite(x, 1000, "Stone").setOrigin(0, 1).setDepth(Phaser.Math.Between(1,5)).setScale(Phaser.Math.FloatBetween(0.5,1));
+    this.physics.add.collider(stone, platform);
   }
 
   cursors = this.input.keyboard.createCursorKeys();
