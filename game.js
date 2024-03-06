@@ -5,8 +5,8 @@ var config = {
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 400 },
-      debug: false,
+      gravity: { y: 300 },
+      debug: true,
     },
   },
   scene: {
@@ -38,15 +38,20 @@ function preload() {
   this.load.image("Tree", "assets/Tree.png");
   this.load.image("Stone", "assets/Stone.png");
   this.load.image("Bush", "assets/Bush.png");
+  this.load.image("platform-sky", "assets/13.png");
+  this.load.image("platform-sky1", "assets/14.png");
+  this.load.image("platform-sky2", "assets/15.png");
 }
 
 function create() {
-
   //для фону
-  this.add.tileSprite(0, 0, worldWidth, 1080, "fon2").setOrigin(0, 0).setDepth(0);
+  this.add
+    .tileSprite(0, 0, worldWidth, 1080, "fon2")
+    .setOrigin(0, 0)
+    .setDepth(0);
 
   //гравець
-  player = this.physics.add.sprite(100, 900, "dude").setDepth(4);
+  player = this.physics.add.sprite(400, 400, "dude").setDepth(4);
   player.setBounce(0.2);
   player.setCollideWorldBounds(true);
 
@@ -81,28 +86,59 @@ function create() {
   platform = this.physics.add.staticGroup();
   for (var x = 0; x < worldWidth; x = x + 100) {
     console.log(x);
-    platform.create(x, 1090-93, "platform").setOrigin(0, 0).refreshBody();
+    platform
+      .create(x, 1090 - 93, "platform")
+      .setOrigin(0, 0)
+      .refreshBody();
   }
 
   //stones
   for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(500, 1000)) {
     console.log(x);
-    stone = this.physics.add.sprite(x, 1000, "Bush").setOrigin(0, 1).setDepth(Phaser.Math.Between(1,5)).setScale(Phaser.Math.FloatBetween(0.5,1.5));
+    stone = this.physics.add
+      .sprite(x, 1000, "Bush")
+      .setOrigin(0, 1)
+      .setDepth(Phaser.Math.Between(1, 5))
+      .setScale(Phaser.Math.FloatBetween(0.5, 1.5));
     this.physics.add.collider(stone, platform);
     //create(x, 1000, "Bush");
   }
 
   for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(1000, 2000)) {
     console.log(x);
-    stone = this.physics.add.sprite(x, 1000, "Tree").setOrigin(0, 1).setDepth(Phaser.Math.Between(1,5)).setScale(Phaser.Math.FloatBetween(1,1.5));
+    stone = this.physics.add
+      .sprite(x, 1000, "Tree")
+      .setOrigin(0, 1)
+      .setDepth(Phaser.Math.Between(1, 5))
+      .setScale(Phaser.Math.FloatBetween(1, 1.5));
     this.physics.add.collider(stone, platform);
     //create(x, 1000, "Bush");
   }
 
   for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(900, 1400)) {
     console.log(x);
-    stone = this.physics.add.sprite(x, 1000, "Stone").setOrigin(0, 1).setDepth(Phaser.Math.Between(1,5)).setScale(Phaser.Math.FloatBetween(0.5,1));
+    stone = this.physics.add
+      .sprite(x, 1000, "Stone")
+      .setOrigin(0, 1)
+      .setDepth(Phaser.Math.Between(1, 5))
+      .setScale(Phaser.Math.FloatBetween(0.5, 1));
     this.physics.add.collider(stone, platform);
+  }
+
+  //для літаючих платформ
+
+  for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(400, 500)) {
+    var y = Phaser.Math.FloatBetween(128, 128 * 6);
+
+    platform.create(x, y, "platform-sky").setOrigin(0.5, 0.5);
+
+    var i;
+    for (i = 1; i < Phaser.Math.Between(0, 5); i++);
+    {
+      platform.create(x + 128 * i, y, "platform-sky1").setOrigin(0.5, 0.5);
+    }
+
+    platform.create(x + 128 * i + 128, y, "platform-sky2").setOrigin(0.5, 0.5);
   }
 
   cursors = this.input.keyboard.createCursorKeys();
