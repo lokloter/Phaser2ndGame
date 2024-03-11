@@ -26,6 +26,10 @@ var scrollSpeed = 500;
 var jumpSpeed = -330;
 var maxObstacles = 3;
 var worldWidth = 9600;
+var score = 0;
+var scoreText;
+var lives = 3;
+var livestext;
 
 function preload() {
   this.load.image("fon2", "assets/fon2.jpg");
@@ -41,6 +45,8 @@ function preload() {
   this.load.image("platform-sky", "assets/13.png");
   this.load.image("platform-sky1", "assets/14.png");
   this.load.image("platform-sky2", "assets/15.png");
+  this.load.image("good_mushroom", "assets/Mushroom_1.png");
+  this.load.image("bad_mushroom", "assets/Mushroom_2.png");
 }
 
 function create() {
@@ -125,9 +131,28 @@ function create() {
     this.physics.add.collider(stone, platform);
   }
 
+  //mushroom
+  Mushroom = this.physics.add.staticGroup();
+  for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(200, 600)) {
+    Mushroom.create(x, 1000 - 20, "good_mushroom")
+      .setOrigin(0.5, 0.5)
+      .setDepth(6);
+  }
+  this.physics.add.collider(Mushroom, platform);
+  this.physics.add.overlap(player, Mushroom, collectMushroom, null, this);
+
+  BadMushroom = this.physics.add.staticGroup();
+  for (var x = 20; x < worldWidth; x = x + Phaser.Math.Between(200, 600)) {
+    BadMushroom.create(x, 1000 - 20, "bad_mushroom")
+      .setOrigin(0.5, 0.5)
+      .setDepth(6);
+  }
+  this.physics.add.collider(BadMushroom, platform);
+  this.physics.add.overlap(player, BadMushroom, collectBadMushroom, null, this);
+
   //для літаючих платформ
 
-  for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(400, 500)) {
+  for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(1000, 2000)) {
     var y = Phaser.Math.FloatBetween(128, 128 * 6);
 
     platform.create(x, y, "platform-sky").setOrigin(0.5, 0.5);
@@ -144,6 +169,26 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
 
   this.physics.add.collider(player, platform);
+
+  //score
+  scoreText = this.add
+    .text(16, 16, "Mushrooms:0", { fontSize: "32px", fill: "#000" })
+    .setScrollFactor(0);
+  function collectMushroom(player, mushroom) {
+    mushroom.disableBody(true, true);
+
+    score += 1;
+    scoreText.setText("Mushrooms:" + score);
+  }
+  livestext = this.add
+    .text(1700, 16, "lives:3", { fontSize: "32px", fill: "#000" })
+    .setScrollFactor(0);
+  function collectBadMushroom(player, BadMushroom) {
+    BadMushroom.disableBody(true, true);
+
+    lives += 1;
+    livestext.setText("lives:" - lives);
+  }
 }
 
 function update() {
