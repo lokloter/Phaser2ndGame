@@ -18,7 +18,7 @@ var config = {
 
 var game = new Phaser.Game(config);
 
-var enemies;
+var enemy;
 var player;
 var platform;
 var cursors;
@@ -33,7 +33,7 @@ var lives = 5;
 var livesText;
 var resetbutton;
 var playerX;
-var enemySpeed = 100;
+var enemycount = 3;
 
 function preload() {
   //fon
@@ -71,25 +71,31 @@ function create() {
   player.setCollideWorldBounds(true);
 
   //ворог
-  enemies = this.physics.add.group();
+  enemy = this.physics.add.group({
+    key: "dude",
+    repeat: enemycount,
+    setXY: { x: 1000, y: 1080 - 150, stepX: 400 },
+  });
 
-  //створюємо ворога
-  enemy = this.physics.add.sprite(x, 600, "dude").setOrigin(0.5, 0.5);
+  enemy.children.iterate(function (child) {
+    child
+      .setCollideWorldBounds(true)
+      .setVelocityX(Phaser.Math.FloatBetween(-500, 500));
+  });
+  //колізія ворога та платформи
   this.physics.add.collider(enemy, platform);
-  for (var x = 0; x < worldWidth; x += Phaser.Math.Between(1000, 2000)) {
-    console.log(x);
-    createEnemy(x, 600);
-  }
 
-  function createEnemy(x, y) {
-    enemy = this.physics.add.sprite(x, y, "enemy");
-    enemy.setOrigin(0.5, 0.5); // Застосовуємо метод setOrigin до enemy
-    this.physics.add.collider(enemy, platform);
-    enemies.add(enemy);
-  }
-  //this.physics.add.overlap(player, enemies, hitEnemy, null, this);
-
-  enemy = this.physics.add.sprite(x, y, "dude").setDepth(4);
+  //колізія ворога та платформи
+  this.physics.add.collider(
+    player,
+    enemy,
+    (enemy) => {
+      player.x = player.x + Phaser.Math.FloatBetween(-50, 50);
+      player.y = player.y - Phaser.Math.FloatBetween(-50, 50);
+    },
+    null,
+    this
+  ); //this.physics.add.overlap(player, enemies, hitEnemy, null, this);
 
   //для камери
   this.cameras.main.setBounds(0, 0, worldWidth, window.innerHeight);
@@ -243,6 +249,12 @@ function update() {
   if (lives == 0) {
     gameOver();
   }
+  //рух енемі
+  enemy.children.iterate((child) => {
+    if (Math.random() < 0.1) {
+      child.setVelocityX(Phaser.Math.FloatBetween(-500, 500));
+    }
+  });
 }
 //restart
 function refreshBody() {}
@@ -261,7 +273,7 @@ function showlive() {
   livesText = "Lives: ";
 
   for (var i = 0; i < lives; i++) {
-    livesText += " ❤️";
+    livesText += "♥";
   }
   return livesText;
 }
