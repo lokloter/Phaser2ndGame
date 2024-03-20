@@ -5,7 +5,7 @@ var config = {
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 300 },
+      gravity: { y: 250 },
       debug: false,
     },
   },
@@ -56,6 +56,8 @@ function preload() {
   //mushrooms
   this.load.image("good_mushroom", "assets/Mushroom_1.png");
   this.load.image("bad_mushroom", "assets/Mushroom_2.png");
+  //enemy
+  this.load.image("enemy", "assets/enemy.png");
 }
 
 function create() {
@@ -65,6 +67,33 @@ function create() {
     .setOrigin(0, 0)
     .setDepth(0);
 
+  //для фізики платформ
+  platform = this.physics.add.staticGroup();
+  for (var x = 0; x < worldWidth; x = x + 100) {
+    //console.log(x);
+    platform
+      .create(x, 1090 - 93, "platform")
+      .setOrigin(0, 0)
+      .refreshBody();
+  }
+
+  //для літаючих платформ
+
+  for (var x = 200; x < worldWidth; x = x + Phaser.Math.Between(1000, 2000)) {
+    //var y = Phaser.Math.FloatBetween(128, 128 * 6);
+    y = 700;
+    platform.create(x, y, "platform-sky");
+
+    var i = 1;
+    for (i = 1; i < Phaser.Math.Between(0, 5); i++)
+    {
+      console.log(x + 128 * i);
+      platform.create(x + 128 * i, y, "platform-sky1");
+    }
+
+    platform.create(x + 128 * i , y, "platform-sky2");
+  }
+
   //гравець
   player = this.physics.add.sprite(400, 400, "dude").setDepth(4);
   player.setBounce(0.2);
@@ -72,9 +101,9 @@ function create() {
 
   //ворог
   enemy = this.physics.add.group({
-    key: "dude",
+    key: "enemy",
     repeat: enemycount,
-    setXY: { x: 1000, y: 1080 - 150, stepX: 400 },
+    setXY: { x: 1000, y: 1080 - 200, stepX: 400 },
   });
 
   enemy.children.iterate(function (child) {
@@ -85,7 +114,7 @@ function create() {
   //колізія ворога та платформи
   this.physics.add.collider(enemy, platform);
 
-  //колізія ворога та платформи
+  //колізія ворога та pla
   this.physics.add.collider(
     player,
     enemy,
@@ -98,8 +127,8 @@ function create() {
   ); //this.physics.add.overlap(player, enemies, hitEnemy, null, this);
 
   //для камери
-  this.cameras.main.setBounds(0, 0, worldWidth, window.innerHeight);
-  this.physics.world.setBounds(0, 0, worldWidth, window.innerHeight);
+  this.cameras.main.setBounds(0, 0, worldWidth, config.height);
+  this.physics.world.setBounds(0, 0, worldWidth, config.height);
 
   this.cameras.main.startFollow(player);
 
@@ -123,16 +152,6 @@ function create() {
     frameRate: 10,
     repeat: -1,
   });
-
-  //для фізики платформ
-  platform = this.physics.add.staticGroup();
-  for (var x = 0; x < worldWidth; x = x + 100) {
-    //console.log(x);
-    platform
-      .create(x, 1090 - 93, "platform")
-      .setOrigin(0, 0)
-      .refreshBody();
-  }
 
   //objects
   for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(500, 1000)) {
@@ -186,22 +205,6 @@ function create() {
   this.physics.add.collider(BadMushroom, platform);
   this.physics.add.overlap(player, BadMushroom, collectBadMushroom, null, this);
 
-  //для літаючих платформ
-
-  for (var x = 0; x < worldWidth; x = x + Phaser.Math.Between(1000, 2000)) {
-    var y = Phaser.Math.FloatBetween(128, 128 * 6);
-
-    platform.create(x, y, "platform-sky").setOrigin(0.5, 0.5);
-
-    var i;
-    for (i = 1; i < Phaser.Math.Between(0, 5); i++);
-    {
-      platform.create(x + 128 * i, y, "platform-sky1").setOrigin(0.5, 0.5);
-    }
-
-    platform.create(x + 128 * i + 128, y, "platform-sky2").setOrigin(0.5, 0.5);
-  }
-
   cursors = this.input.keyboard.createCursorKeys();
 
   this.physics.add.collider(player, platform);
@@ -249,6 +252,10 @@ function update() {
   if (lives == 0) {
     gameOver();
   }
+  //агро радіус
+  if (Math.abs(player.x - enemy.x) < 600) {
+    enemy.moveTo(player, player.x, player.y, 300, 1);
+  }
   //рух енемі
   enemy.children.iterate((child) => {
     if (Math.random() < 0.1) {
@@ -263,8 +270,7 @@ function collectBadMushroom(player, badMushroom) {
   badMushroom.disableBody(true, true);
 
   lives -= 1;
-  livesText.setText(showlive);
-  livesText.setText("Lives: " + lives);
+  livesText.setText(showlive());
   console.log(lives);
 }
 
