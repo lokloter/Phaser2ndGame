@@ -29,7 +29,7 @@ var maxObstacles = 3;
 var worldWidth = 9600;
 var score = 0;
 var scoreText;
-var lives = 5;
+var lives = 2;
 var livesText;
 var resetbutton;
 var playerX;
