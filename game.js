@@ -6,7 +6,7 @@ var config = {
     default: "arcade",
     arcade: {
       gravity: { y: 250 },
-      debug: false,
+      debug: true,
     },
   },
   scene: {
@@ -29,11 +29,14 @@ var maxObstacles = 3;
 var worldWidth = 9600;
 var score = 0;
 var scoreText;
-var lives = 2;
+var lives = 5;
 var livesText;
 var resetbutton;
 var playerX;
 var enemycount = 3;
+var GrandMother
+var finalscore = 0;
+var finalscoreText;
 
 function preload() {
   //fon
@@ -56,6 +59,7 @@ function preload() {
   //mushrooms
   this.load.image("good_mushroom", "assets/Mushroom_1.png");
   this.load.image("bad_mushroom", "assets/Mushroom_2.png");
+  this.load.image("very_good_mushroom", "assets/Mushroom_3.png")
   //enemy
   this.load.image("enemy", "assets/enemy.png");
 }
@@ -203,15 +207,36 @@ function create() {
       .setDepth(6);
   }
   this.physics.add.collider(BadMushroom, platform);
-  this.physics.add.overlap(player, BadMushroom, collectBadMushroom, null, this);
+  this.physics.add.collider(player, BadMushroom, collectBadMushroom, null, this);
 
   cursors = this.input.keyboard.createCursorKeys();
 
   this.physics.add.collider(player, platform);
 
+  GoodMushroom = this.physics.add.staticGroup();
+  for (var x = 20; x < worldWidth; x = x + 3200) {
+    GoodMushroom.create(x, 1000 - 20, "very_good_mushroom")
+      .setOrigin(0.5, 0.5)
+      .setDepth(6);
+  }
+  this.physics.add.collider(GoodMushroom, platform);
+  this.physics.add.overlap(player, GoodMushroom, collectVeryGoodMushroom, null, this);
+
+  //grandmother
+
+  Grandmother = this.physics.add.staticGroup();
+  Grandmother.create(worldWidth-200,800, "dada");
+  this.physics.add.collider(Grandmother, platform);
+  this.physics.add.overlap(player, Grandmother, touchgrandmother, null, this);
+
   //score
   scoreText = this.add
     .text(16, 16, "Mushrooms:0", { fontSize: "32px", fill: "#000" })
+    .setScrollFactor(0);
+
+  //finalscore
+  finalscoreText = this.add
+    .text(300, 16, "Final Score:0", { fontSize: "32px", fill: "#000" })
     .setScrollFactor(0);
 
   //lives
@@ -228,8 +253,6 @@ function create() {
     console.log("reset");
     refreshBody();
   });
-
-  //enemy
 }
 
 function update() {
@@ -274,14 +297,22 @@ function collectBadMushroom(player, badMushroom) {
   console.log(lives);
 }
 
+function collectVeryGoodMushroom(player, GoodMushroom) {
+  GoodMushroom.disableBody(true, true);
+
+  lives += 1;
+  livesText.setText(showlive());
+  console.log(lives);
+}
+
 //showlive
 function showlive() {
-  livesText = "Lives: ";
+  TextLine = "Lives: ";
 
   for (var i = 0; i < lives; i++) {
-    livesText += "♥";
+    TextLine += "♥";
   }
-  return livesText;
+  return TextLine;
 }
 
 function collectMushroom(player, mushroom) {
@@ -289,6 +320,11 @@ function collectMushroom(player, mushroom) {
 
   score += 1;
   scoreText.setText("Mushrooms:" + score);
+}
+
+function touchgrandmother(player, Grandmother) {
+  finalscoreText.setText("Final Score:" + score);
+  score = 0;
 }
 
 // function hitEnemy(player, enemy) {
